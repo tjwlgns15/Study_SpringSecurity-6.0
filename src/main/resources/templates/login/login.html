@@ -97,8 +97,6 @@
                 <div th:if="${param.error}" class="form-group">
                     <span th:text="${exception}?: '잘못된 아이디나 암호입니다'" class="alert alert-danger"></span>
                 </div>
-
-<!--                타임리프 문법으로 form 태그 사용 시 csrf 토큰을 자동으로 생성해준다-->
                 <form th:action="@{/login}" method="post">
                     <input type="hidden" th:value="secret" name="secret_key" />
                     <div class="form-group">
