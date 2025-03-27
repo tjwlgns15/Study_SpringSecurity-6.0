@@ -3,6 +3,7 @@ package com.jihun.springsecuritystudyproject.security.configs;
 import com.jihun.springsecuritystudyproject.security.dsl.RestApiDsl;
 import com.jihun.springsecuritystudyproject.security.entrypoint.RestAuthenticationEntryPoint;
 import com.jihun.springsecuritystudyproject.security.handler.*;
+import com.jihun.springsecuritystudyproject.security.manager.CustomDynamicAuthorizationManager;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -11,10 +12,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 @EnableWebSecurity
@@ -29,17 +32,15 @@ public class SecurityConfig {
     private final FormAuthenticationFailureHandler failureHandler;
     private final RestAuthenticationSuccessHandler restSuccessHandler;
     private final RestAuthenticationFailureHandler restFailureHandler;
+    private final AuthorizationManager<RequestAuthorizationContext> authorizationManager; // CustomDynamicAuthorizationManager
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*").permitAll()
-                        .requestMatchers("/","/signup","/login*").permitAll()
-                        .requestMatchers("/user").hasAuthority("ROLE_USER")
-                        .requestMatchers("/manager").hasAuthority("ROLE_MANAGER")
-                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
-                        .anyRequest().permitAll())
+                        .anyRequest().access(authorizationManager) // 요청이 들어오면 매니저에게 요청을 위임
+                )
 
                 .formLogin(form -> form
                         .loginPage("/login")
